@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+      <meta charset="utf-8">
+      <title>Beaches Be Crazy</title>
+      <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+      <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.1.1/css/bootstrap.min.css">
+      <!-- I like the smaller table styles of 2.1.1, but needed the modal styles from 3.0.0 -->
+      <link rel="stylesheet" href="http://blueimp.github.io/Gallery/css/blueimp-gallery.min.css">
+      <link rel="stylesheet" href="css/bootstrap-image-gallery.min.css">
+  </head>
+<body>
+    <div class="container">
+      <h1>Beaches Be Crazy</h1>
+      <hr />
+      <div class="page"></div>
+    </div>
+
+
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.8.2/jquery.min.js" type="text/javascript"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.2/underscore-min.js" type="text/javascript"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/backbone.js/0.9.2/backbone-min.js"></script>
+
+  <div id="blueimp-gallery" class="blueimp-gallery">
+      <!-- The container for the modal slides -->
+      <div class="slides"></div>
+      <!-- Controls for the borderless lightbox -->
+      <h3 class="title"></h3>
+      <a class="prev">‹</a>
+      <a class="next">›</a>
+      <a class="close">×</a>
+      <a class="play-pause"></a>
+      <ol class="indicator"></ol>
+      <!-- The modal dialog, which will be used to wrap the lightbox content -->
+      <div class="modal fade">
+          <div class="modal-dialog">
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <button type="button" class="close" aria-hidden="true">&times;</button>
+                      <h4 class="modal-title"></h4>
+                  </div>
+                  <div class="modal-body next"></div>
+                  <div class="modal-footer">
+                      <button type="button" class="btn btn-default pull-left prev">
+                          <i class="glyphicon glyphicon-chevron-left"></i>
+                          Previous
+                      </button>
+                      <button type="button" class="btn btn-primary next">
+                          Next
+                          <i class="glyphicon glyphicon-chevron-right"></i>
+                      </button>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+
+    <script type="text/template" id="asset-list-template">
+      <table id="links" class="table striped">
+        <thead>
+          <tr>
+            <th>Picture that (with a Kodak)</th><th>Caption</th><th>Asset ID</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% _.each(assets, function(asset) { %>
+            <tr>
+              <td>
+                <a href="<%= (asset.url)%>" title="<%= (asset.caption)%>" data-gallery>
+                  <img src="<%= (asset.url)%>" alt="<%= (asset.caption)%>">
+                </a>
+              </td>
+              <td><%= (asset.caption)%></td>
+              <td><%= (asset.id)%></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </script>
+
+    <script>
+
+      $.ajaxPrefilter( function( options, originalOptions, jqXHR ) {
+        options.url = 'http://api.getchute.com' + options.url;
+      });
+
+      var hashtag = window.prompt("Enter a hash tag to filter by!","beach");
+      var Assets = Backbone.Collection.extend({
+        url: '/v2/albums/asYLgnzd/assets?tags='+hashtag+'&per_page=20'
+      });
+
+      var AssetListView = Backbone.View.extend({
+        el: '.page',
+        render: function () {
+          var that = this;
+          var assets = new Assets();
+          assets.fetch({
+            success: function (assets) {
+              var template = _.template($('#asset-list-template').html(), {assets: assets.models[0].attributes.data});
+              that.$el.html(template);
+            }
+          })
+        }
+      });
+
+      var assetListView = new AssetListView();
+
+      var Router = Backbone.Router.extend({
+          routes: {
+            "": "home"
+          }
+      });
+
+      var router = new Router;
+      router.on('route:home', function() {
+        // render asset list
+        assetListView.render();
+      })
+
+      Backbone.history.start();
+    </script>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="http://blueimp.github.io/Gallery/js/jquery.blueimp-gallery.min.js"></script>
+    <script src="js/bootstrap-image-gallery.min.js"></script>
+
+  </body>
+</html>
